@@ -1,44 +1,63 @@
 #include "page_dewarp.h"
 
-int main()
+int main(int argc, char** argv)
 {
-	string name = "boston_cooking_a.jpg";
-	Mat img = cv::imread(name);
-	Mat small;
-	resize_to_screen(img, small);
+	if (argc < 2) {
+		cout << "usage: " << argv[0];
+		cout << " IMAGE1 [IMAGE2 ...]" << endl;
+		exit(1);
+	}
 
-	Mat pagemask;
-	vector<Point> page_outline;
-	get_page_extents(small, pagemask, page_outline);
+	for (int i = 1; i < argc; i++) {
+		string name = argv[i];
+		cout << name << endl;
+		Mat img = cv::imread(name);
+		Mat small;
+		resize_to_screen(img, small);
 
-	vector<ContourInfo> cinfo_list;
-	get_contours(name, small, pagemask, "text", cinfo_list);
+		cout << "loaded " << name << " with size " << img.size;
+		cout << " and resized to " << small.size << endl;
 
-	vector<vector<ContourInfo*>> spans;
-	assemble_span(name, small, pagemask, cinfo_list, spans);
+		Mat pagemask;
+		vector<Point> page_outline;
+		get_page_extents(small, pagemask, page_outline);
 
-	vector<vector<Point2d>> span_points;
-	sample_spans(small.size(), spans, span_points);
+		vector<ContourInfo> cinfo_list;
+		get_contours(name, small, pagemask, "text", cinfo_list);
 
-	vector<Point2d> corners;
-	vector<double> y_coords;
-	vector<vector<double>> x_coords;
-	keypoints_from_samples(name, small, pagemask, page_outline,
-		span_points, corners, y_coords, x_coords);
+		vector<vector<ContourInfo*>> spans;
+		assemble_span(name, small, pagemask, cinfo_list, spans);
 
-	Params params;
-	vector<Point2d> rough_dims;
-	get_default_params(corners, rough_dims, y_coords, x_coords, params);
+		if (spans.size() < 1) {
+			cout << "skipping " << name << " because only ";
+			cout << spans.size() << " spans" << endl;
+		}
 
-	vector<Point2d> dst_points;
-	stack_points(corners, span_points, params.npts, dst_points);
+		vector<vector<Point2d>> span_points;
+		sample_spans(small.size(), spans, span_points);
 
-	optimize_params(name, small, dst_points, params);
+		vector<Point2d> corners;
+		vector<double> y_coords;
+		vector<vector<double>> x_coords;
+		keypoints_from_samples(name, small, pagemask, page_outline,
+			span_points, corners, y_coords, x_coords);
 
-	double page_dims[2]{ rough_dims[0].x, rough_dims[0].y };
-	get_page_dims(corners, params, page_dims);
+		Params params;
+		vector<Point2d> rough_dims;
+		get_default_params(corners, rough_dims, y_coords, x_coords, params);
 
-	remap_image(name, img, small, page_dims, params);
+		vector<Point2d> dst_points;
+		stack_points(corners, span_points, params.npts, dst_points);
+
+		optimize_params(name, small, dst_points, params);
+
+		double page_dims[2]{ rough_dims[0].x, rough_dims[0].y };
+		get_page_dims(corners, params, page_dims);
+
+		remap_image(name, img, small, page_dims, params);
+
+		cout << "wrote " << name + "_thresh.png" << endl;
+	}
 
 	return 0;
 }
