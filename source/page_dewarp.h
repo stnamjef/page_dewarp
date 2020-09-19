@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 #define _USE_MATH_DEFINES
 #include <iostream>
 #include <algorithm>
@@ -36,10 +36,6 @@ double EDGE_MAX_ANGLE = 7.5;	// maximum change in angle allowed between contours
 int SPAN_MIN_WIDTH = 30;		// minimum reduced px width for span
 int SPAN_PX_PER_STEP = 20;		// reduced px spacing for sampling along spans
 double FOCAL_LENGTH = 1.2;		// normalized focal length of camera
-
-int NRVEC = 3;
-int NTVEC = 3;
-int NSLPS = 2;
 
 int RVEC_BEGIN = 0;
 int TVEC_BEGIN = 3;
@@ -81,7 +77,7 @@ double objective2(double* dims, int size, const vector<Point2d>& dst_br, Params&
 void remap_image(string name, const Mat& img, const Mat& small, const double* page_dims, const Params& p);
 int round_nearest_multiple(double num, int factor);
 vector<double> linspace(double a, double b, int N);
-void mashgrid(const vector<double>& xs, const vector<double>& ys, vector<double>& x_coords, vector<double>& y_coords);
+void meshgrid(const vector<double>& xs, const vector<double>& ys, vector<double>& x_coords, vector<double>& y_coords);
 void reshape(const vector<Point2d>& img_pts, int height, int width, Mat& img_x_coords, Mat& img_y_coords);
 
 /*----------------------------------------- function definition -----------------------------------------*/
@@ -220,10 +216,7 @@ Mat get_mask(string name, const Mat& small, const Mat& pagemask, string masktype
 	return cv::min(mask, pagemask);
 }
 
-Mat box(int width, int height)
-{
-	return Mat::ones(height, width, CV_8UC1);
-}
+Mat box(int width, int height) { return Mat::ones(height, width, CV_8UC1); }
 
 Mat make_tight_mask(const vector<Point>& contour, int xmin, int ymin, int width, int height)
 {
@@ -248,8 +241,8 @@ void assemble_span(string name,
 	// sort list
 	std::stable_sort(begin(cinfo_list), end(cinfo_list),
 		[](const ContourInfo& a, const ContourInfo& b) {
-		return a.rect.y < b.rect.y;
-	});
+			return a.rect.y < b.rect.y;
+		});
 
 	// generate all candidate edges
 	vector<Edge> candidate_edges;
@@ -266,8 +259,8 @@ void assemble_span(string name,
 	// sort candidate edges by score(lower is better)
 	std::stable_sort(begin(candidate_edges), end(candidate_edges),
 		[](const Edge& a, const Edge& b) {
-		return a.score < b.score;
-	});
+			return a.score < b.score;
+		});
 
 	// for each candidate edge
 	for (Edge& edge : candidate_edges) {
@@ -649,7 +642,7 @@ void remap_image(string name, const Mat& img, const Mat& small, const double* pa
 	vector<double> x_coords;
 	vector<double> y_coords;
 
-	mashgrid(page_x_range, page_y_range, x_coords, y_coords);
+	meshgrid(page_x_range, page_y_range, x_coords, y_coords);
 
 	vector<Point2d> img_pts;
 	project_xy(x_coords, y_coords, p.data, img_pts);
@@ -676,7 +669,7 @@ void remap_image(string name, const Mat& img, const Mat& small, const double* pa
 	Mat thresh;
 	cv::adaptiveThreshold(remapped, thresh, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, ADAPTIVE_WINSZ, 25);
 
-	cv::imwrite("boston_cooking_a_thresh.png", thresh);
+	cv::imwrite(name + "_thresh.png", thresh);
 }
 
 int round_nearest_multiple(double num, int factor)
@@ -704,7 +697,7 @@ vector<double> linspace(double a, double b, int N)
 	return xs;
 }
 
-void mashgrid(const vector<double>& xs,
+void meshgrid(const vector<double>& xs,
 	const vector<double>& ys,
 	vector<double>& x_coords,
 	vector<double>& y_coords)
