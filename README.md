@@ -42,10 +42,4 @@ g++ -o page_dewarp main.cpp $(pkg-config --cflags --libs opencv4)
 
 ## 4. Examples
 
-- original image
-
-![boston_cooking_a](test images/boston_cooking_a.jpg)
-
-- output
-
-![boston_cooking_a.jpg_thresh](test images/boston_cooking_a_thresh.png)
+- The original and dewarped images are in the test images folder.
