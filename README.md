@@ -44,8 +44,8 @@ g++ -o page_dewarp main.cpp $(pkg-config --cflags --libs opencv4)
 
 - original image
 
-![boston_cooking_a](./test images/boston_cooking_a.jpg)
+![boston_cooking_a](test images/boston_cooking_a.jpg)
 
 - output
 
-![boston_cooking_a.jpg_thresh](./test images/boston_cooking_a.jpg_thresh.png)
+![boston_cooking_a.jpg_thresh](test images/boston_cooking_a_thresh.png)
