@@ -7,7 +7,7 @@
 #include <vector>
 #include <cmath>
 #include <chrono>
-#include "contour_info.h"
+#include "contourinfo.h"
 #include "params.h"
 #include "visualize.h"
 #include "praxis.h"
@@ -41,6 +41,8 @@ int RVEC_BEGIN = 0;
 int TVEC_BEGIN = 3;
 int SLOPES_BEGIN = 6;
 int Y_BEGIN = 8;
+
+int THRES_FLG = 1;
 
 int DEBUG_LEVEL = 0;            // 0=none, 1=some, 2=lots, 3=all
 
@@ -713,19 +715,25 @@ void remap_image(string name, const Mat& img, const Mat& small, const double* pa
     cv::resize(img_x_coords, img_x_coords, Size(width, height), 0.0, 0.0, INTER_CUBIC);
     cv::resize(img_y_coords, img_y_coords, Size(width, height), 0.0, 0.0, INTER_CUBIC);
 
-    Mat img_gray;
-    cv::cvtColor(img, img_gray, COLOR_RGB2GRAY);
-
     img_x_coords.convertTo(img_x_coords, CV_32FC1);
     img_y_coords.convertTo(img_y_coords, CV_32FC1);
 
     Mat remapped;
-    cv::remap(img_gray, remapped, img_x_coords, img_y_coords, INTER_CUBIC, BORDER_REPLICATE);
+//    cv::remap(img_gray, remapped, img_x_coords, img_y_coords, INTER_CUBIC, BORDER_REPLICATE);
+    cv::remap(img, remapped, img_x_coords, img_y_coords, INTER_CUBIC, BORDER_REPLICATE);
 
-    Mat thresh;
-    cv::adaptiveThreshold(remapped, thresh, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, ADAPTIVE_WINSZ, 25);
+    Mat img_gray;
+    cv::cvtColor(remapped, img_gray, COLOR_RGB2GRAY);
 
-    cv::imwrite(name + "_thresh.png", thresh);
+    if (THRES_FLG == 0)
+    {
+        cv::imwrite(name + "_remap.png", remapped);
+    } else {
+        Mat thresh;
+        cv::adaptiveThreshold(img_gray, thresh, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, ADAPTIVE_WINSZ, 25);
+
+        cv::imwrite(name + "_thresh.png", thresh);
+    }
 }
 
 int round_nearest_multiple(double num, int factor)

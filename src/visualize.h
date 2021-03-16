@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <opencv2/opencv.hpp>
-#include "contour_info.h"
+#include "contourinfo.h"
 using namespace std;
 using namespace cv;
 
