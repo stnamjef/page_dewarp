@@ -22,4 +22,6 @@ install: $(PROGS)
 	$(INSTALL) -d $(PREFIX)/bin
 	$(INSTALL) -m 0755 $(PROGS) $(PREFIX)/bin/
 	$(INSTALL) -d $(PREFIX)/share/doc/$(PROJNAME)
-	$(INSTALL) -m 0644 LICENSE README.md doc/* $(PREFIX)/share/doc/$(PROJNAME)
+	$(INSTALL) -m 0644 LICENSE README.md $(PREFIX)/share/doc/$(PROJNAME)
+	$(INSTALL) -d $(PREFIX)/share/man/man1
+	$(INSTALL) -m 0644 man/man1/$(PROGS).1 $(PREFIX)/share/man/man1

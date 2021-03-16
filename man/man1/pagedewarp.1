@@ -1,0 +1,90 @@
+.TH "PageDewarp" 1 1.0 "16 Mar 2021" "User Manual"
+
+.SH NAME
+pagedewarp
+
+.SH DESCRIPTION
+Faster version of page_dewarp in C++.
+.PP
+Page dewarping and thresholding using a "cubic sheet" model (OpenCV).
+
+.SH SYNOPSIS
+pagedewarp [options] IMAGE1 [IMAGE2 ...]
+
+.SH OPTIONS
+.TP
+-mx N
+margin X (default=50)
+.TP
+-my N
+margin Y (default=20)
+.TP
+-m  N
+margin X and Y
+.TP
+-z  N.N
+zoom out (default=1)
+.TP
+-d  N
+DPI out (default=300)
+.TP
+-r  N
+remap decimate (default=16)
+.TP
+-tw N
+text min width (default=15)
+.TP
+-th N
+text min height (default=2)
+.TP
+-t  N
+text min width and height
+.TP
+-ta N.N
+text min aspect (default=1.5)
+.TP
+-tt N
+text max thickness (default=10)
+.TP
+-eo N.N
+edge max overlap (default=1)
+.TP
+-el N.N
+edge max length (default=100)
+.TP
+-ea N.N
+edge angle cost (default=10)
+.TP
+-em N.N
+edge max angle (default=7.5)
+.TP
+-sw N
+span min width (default=30)
+.TP
+-sp N
+span px per step (default=20)
+.TP
+-fl N.N
+focal length (default=1.2)
+.TP
+-ro
+remap only (no threshold)
+
+.SH EXAMPLE
+pagedewarp images/boston_cooking_a.jpg images/boston_cooking_b.jpg
+
+.SH COPYRIGHT
+Copyright 2020 Seungtae.
+ All rights reserved.
+
+.SH SEE ALSO
+opencv_createsamples (1)
+
+.SH CONTACTS
+PageDewarp Project:
+.TP
+Website:
+https://github.com/ImageProcessing-ElectronicPublications/pagedewarp, https://github.com/stnamjef/page_dewarp
+.TP
+Email:
+Seungtae <stnamjef@github.com>
