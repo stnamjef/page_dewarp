@@ -10,29 +10,29 @@ using namespace std;
 /*----------------------------------------- function declaration -----------------------------------------*/
 
 double flin(int n, int j, double l,
-    double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
-    double x[], const vector<Point2d>& dst_pts, Params& p,
-    int& nf, double v[], double q0[], double q1[], double& qd0,
-    double& qd1, double& qa, double& qb, double& qc);
+            double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
+            double x[], const vector<Point2d>& dst_pts, Params& p,
+            int& nf, double v[], double q0[], double q1[], double& qd0,
+            double& qd1, double& qa, double& qb, double& qc);
 
 void minfit(int n, double tol, double a[], double q[]);
 
 void minny(int n, int j, int nits, double& d2, double& x1, double& f1,
-    bool fk, double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
-    double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
-    double v[], double q0[], double q1[], int& nl, int& nf, double dmin,
-    double ldt, double& fx, double& qa, double& qb, double& qc, double& qd0,
-    double& qd1);
+           bool fk, double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
+           double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
+           double v[], double q0[], double q1[], int& nl, int& nf, double dmin,
+           double ldt, double& fx, double& qa, double& qb, double& qc, double& qd0,
+           double& qd1);
 
 double praxis(double t0, double h0, int n, int prin, double x[], const vector<Point2d>& dst_pts, Params& p,
-    double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p));
+              double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p));
 
 void print2(int n, double x[], int prin, double fx, int nf, int nl);
 
 void quad(int n, double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
-    double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
-    double v[], double q0[], double q1[], int& nl, int& nf, double dmin, double ldt, double& fx,
-    double& qf1, double& qa, double& qb, double& qc, double& qd0, double& qd1);
+          double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
+          double v[], double q0[], double q1[], int& nl, int& nf, double dmin, double ldt, double& fx,
+          double& qf1, double& qa, double& qb, double& qc, double& qd0, double& qd1);
 
 double r8_epsilon();
 double r8_hypot(double x, double y);
@@ -41,7 +41,7 @@ double r8_min(double x, double y);
 double r8_uniform_01(int& seed);
 void r8mat_print(int m, int n, double a[], string title);
 void r8mat_print_some(int m, int n, double a[], int ilo, int jlo, int ihi,
-    int jhi, string title);
+                      int jhi, string title);
 void r8mat_transpose_in_place(int n, double a[]);
 void r8vec_copy(int n, double a1[], double a2[]);
 double r8vec_max(int n, double r8vec[]);
@@ -53,78 +53,78 @@ void svsort(int n, double d[], double v[]);
 /*----------------------------------------- function definition -----------------------------------------*/
 
 double flin(int n, int jsearch, double l,
-    double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
-    double x[], const vector<Point2d>& dst_pts, Params& p,
-    int& nf, double v[], double q0[], double q1[], double& qd0,
-    double& qd1, double& qa, double& qb, double& qc)
+            double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
+            double x[], const vector<Point2d>& dst_pts, Params& p,
+            int& nf, double v[], double q0[], double q1[], double& qd0,
+            double& qd1, double& qa, double& qb, double& qc)
 
-    //****************************************************************************80
-    //
-    //  Purpose:
-    //
-    //    FLIN is the function of one variable to be minimized by MINNY.
-    //
-    //  Discussion:
-    //
-    //    F(X) is a scalar function of a vector argument X.
-    //
-    //    A minimizer of F(X) is sought along a line or parabola.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    04 August 2016
-    //
-    //  Author:
-    //
-    //    Original FORTRAN77 version by Richard Brent.
-    //    C++ version by John Burkardt.
-    //
-    //  Reference:
-    //
-    //    Richard Brent,
-    //    Algorithms for Minimization with Derivatives,
-    //    Prentice Hall, 1973,
-    //    Reprinted by Dover, 2002.
-    //
-    //  Parameters:
-    //
-    //    Input, int N, the number of variables.
-    //
-    //    Input, int JSEARCH, indicates the kind of search.
-    //    If JSEARCH is a legal column index, linear search along V(*,JSEARCH).
-    //    If JSEARCH is -1, then the search is parabolic, based on X, Q0 and Q1.
-    //
-    //    Input, double L, is the parameter determining the particular
-    //    point at which F is to be evaluated.  
-    //    For a linear search, L is the step size.
-    //    For a quadratic search, L is a parameter which specifies
-    //    a point in the plane of X, Q0 and Q1.
-    //
-    //    Input, double F ( double X[], int N ), the function to be minimized.
-    //
-    //    Input, double X[N], the base point of the search.
-    //
-    //    Input/output, int &NF, the function evaluation counter.
-    //
-    //    Input, double V[N,N], a matrix whose columns constitute 
-    //    search directions.
-    //
-    //    Input, double Q0[N], Q1[N], two auxiliary points used to
-    //    determine the plane when a quadratic search is performed.
-    //
-    //    Input, double &QD0, &QD1, values needed to compute the 
-    //    coefficients QA, QB, QC.
-    //
-    //    Output, double &QA, &QB, &QC, coefficients used to combine
-    //    Q0, X, and A1 if a quadratic search is used.
-    //
-    //    Output, double FLIN, the value of the function at the 
-    //    minimizing point.
-    //
+//****************************************************************************80
+//
+//  Purpose:
+//
+//    FLIN is the function of one variable to be minimized by MINNY.
+//
+//  Discussion:
+//
+//    F(X) is a scalar function of a vector argument X.
+//
+//    A minimizer of F(X) is sought along a line or parabola.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    04 August 2016
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Richard Brent.
+//    C++ version by John Burkardt.
+//
+//  Reference:
+//
+//    Richard Brent,
+//    Algorithms for Minimization with Derivatives,
+//    Prentice Hall, 1973,
+//    Reprinted by Dover, 2002.
+//
+//  Parameters:
+//
+//    Input, int N, the number of variables.
+//
+//    Input, int JSEARCH, indicates the kind of search.
+//    If JSEARCH is a legal column index, linear search along V(*,JSEARCH).
+//    If JSEARCH is -1, then the search is parabolic, based on X, Q0 and Q1.
+//
+//    Input, double L, is the parameter determining the particular
+//    point at which F is to be evaluated.
+//    For a linear search, L is the step size.
+//    For a quadratic search, L is a parameter which specifies
+//    a point in the plane of X, Q0 and Q1.
+//
+//    Input, double F ( double X[], int N ), the function to be minimized.
+//
+//    Input, double X[N], the base point of the search.
+//
+//    Input/output, int &NF, the function evaluation counter.
+//
+//    Input, double V[N,N], a matrix whose columns constitute
+//    search directions.
+//
+//    Input, double Q0[N], Q1[N], two auxiliary points used to
+//    determine the plane when a quadratic search is performed.
+//
+//    Input, double &QD0, &QD1, values needed to compute the
+//    coefficients QA, QB, QC.
+//
+//    Output, double &QA, &QB, &QC, coefficients used to combine
+//    Q0, X, and A1 if a quadratic search is used.
+//
+//    Output, double FLIN, the value of the function at the
+//    minimizing point.
+//
 {
     int i;
     double* t;
@@ -212,7 +212,7 @@ void minfit(int n, double tol, double a[], double q[])
 //    Volume II, Linear Algebra, Part 2,
 //    Springer Verlag, 1971.
 //
-//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, Yasuhiko Ikebe, 
+//    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, Yasuhiko Ikebe,
 //    Virginia Klema, Cleve Moler,
 //    Matrix Eigensystem Routines, EISPACK Guide,
 //    Lecture Notes in Computer Science, Volume 6,
@@ -598,99 +598,99 @@ void minfit(int n, double tol, double a[], double q[])
 //****************************************************************************80
 
 void minny(int n, int jsearch, int nits, double& d2, double& x1, double& f1,
-    bool fk, double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
-    double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
-    double v[], double q0[], double q1[], int& nl, int& nf, double dmin,
-    double ldt, double& fx, double& qa, double& qb, double& qc, double& qd0,
-    double& qd1)
+           bool fk, double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
+           double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
+           double v[], double q0[], double q1[], int& nl, int& nf, double dmin,
+           double ldt, double& fx, double& qa, double& qb, double& qc, double& qd0,
+           double& qd1)
 
-    //****************************************************************************80
-    //
-    //  Purpose:
-    //
-    //    MINNY minimizes a scalar function of N variables along a line.
-    //
-    //  Discussion:
-    //
-    //    MINNY minimizes F along the line from X in the direction V(*,JSEARCH) 
-    //    or else using a quadratic search in the plane defined by Q0, Q1 and X.
-    //
-    //    If FK = true, then F1 is FLIN(X1).  Otherwise X1 and F1 are ignored
-    //    on entry unless final FX is greater than F1.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    04 August 2016
-    //
-    //  Author:
-    //
-    //    Original FORTRAN77 version by Richard Brent.
-    //    C++ version by John Burkardt.
-    //
-    //  Reference:
-    //
-    //    Richard Brent,
-    //    Algorithms for Minimization with Derivatives,
-    //    Prentice Hall, 1973,
-    //    Reprinted by Dover, 2002.
-    //
-    //  Parameters:
-    //
-    //    Input, int N, the number of variables.
-    //
-    //    Input, int JSEARCH, indicates the kind of search.
-    //    If J is a legal columnindex, linear search in the direction of V(*,JSEARCH).
-    //    Otherwise, the search is parabolic, based on X, Q0 and Q1.
-    //
-    //    Input, int NITS, the maximum number of times the interval 
-    //    may be halved to retry the calculation.
-    //
-    //    Input/output, double &D2, is either zero, or an approximation to 
-    //    the value of (1/2) times the second derivative of F.
-    //
-    //    Input/output, double &X1, on entry, an estimate of the 
-    //    distance from X to the minimum along V(*,JSEARCH), or a curve.  
-    //    On output, the distance between X and the minimizer that was found.
-    //
-    //    Input/output, double &F1, ?
-    //
-    //    Input, bool FK; if FK is TRUE, then on input F1 contains 
-    //    the value FLIN(X1).
-    //
-    //    Input, double F ( double X[], int N ), is the name of the function to 
-    //    be minimized.
-    //
-    //    Input/output, double X[N], ?
-    //
-    //    Input, double T, ?
-    //
-    //    Input, double H, ?
-    //
-    //    Input, double V[N,N], a matrix whose columns are direction
-    //    vectors along which the function may be minimized.
-    //
-    //    ?, double Q0[N], ?
-    //
-    //    ?, double Q1[N], ?
-    //
-    //    Input/output, int &NL, the number of linear searches.
-    //
-    //    Input/output, int &NF, the number of function evaluations.
-    //
-    //    Input, double DMIN, an estimate for the smallest eigenvalue.
-    //
-    //    Input, double LDT, the length of the step.
-    //
-    //    Input/output, double &FX, the value of F(X,N).
-    //
-    //    Input/output, double &QA, &QB, &QC;
-    //
-    //    Input/output, double &QD0, &QD1, ?.
-    //
+//****************************************************************************80
+//
+//  Purpose:
+//
+//    MINNY minimizes a scalar function of N variables along a line.
+//
+//  Discussion:
+//
+//    MINNY minimizes F along the line from X in the direction V(*,JSEARCH)
+//    or else using a quadratic search in the plane defined by Q0, Q1 and X.
+//
+//    If FK = true, then F1 is FLIN(X1).  Otherwise X1 and F1 are ignored
+//    on entry unless final FX is greater than F1.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    04 August 2016
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Richard Brent.
+//    C++ version by John Burkardt.
+//
+//  Reference:
+//
+//    Richard Brent,
+//    Algorithms for Minimization with Derivatives,
+//    Prentice Hall, 1973,
+//    Reprinted by Dover, 2002.
+//
+//  Parameters:
+//
+//    Input, int N, the number of variables.
+//
+//    Input, int JSEARCH, indicates the kind of search.
+//    If J is a legal columnindex, linear search in the direction of V(*,JSEARCH).
+//    Otherwise, the search is parabolic, based on X, Q0 and Q1.
+//
+//    Input, int NITS, the maximum number of times the interval
+//    may be halved to retry the calculation.
+//
+//    Input/output, double &D2, is either zero, or an approximation to
+//    the value of (1/2) times the second derivative of F.
+//
+//    Input/output, double &X1, on entry, an estimate of the
+//    distance from X to the minimum along V(*,JSEARCH), or a curve.
+//    On output, the distance between X and the minimizer that was found.
+//
+//    Input/output, double &F1, ?
+//
+//    Input, bool FK; if FK is TRUE, then on input F1 contains
+//    the value FLIN(X1).
+//
+//    Input, double F ( double X[], int N ), is the name of the function to
+//    be minimized.
+//
+//    Input/output, double X[N], ?
+//
+//    Input, double T, ?
+//
+//    Input, double H, ?
+//
+//    Input, double V[N,N], a matrix whose columns are direction
+//    vectors along which the function may be minimized.
+//
+//    ?, double Q0[N], ?
+//
+//    ?, double Q1[N], ?
+//
+//    Input/output, int &NL, the number of linear searches.
+//
+//    Input/output, int &NF, the number of function evaluations.
+//
+//    Input, double DMIN, an estimate for the smallest eigenvalue.
+//
+//    Input, double LDT, the length of the step.
+//
+//    Input/output, double &FX, the value of F(X,N).
+//
+//    Input/output, double &QA, &QB, &QC;
+//
+//    Input/output, double &QD0, &QD1, ?.
+//
 {
     double d1;
     int dz;
@@ -798,7 +798,7 @@ void minny(int n, int jsearch, int nits, double& d2, double& x1, double& f1,
             }
 
             d2 = (x2 * (f1 - f0) - x1 * (f2 - f0))
-                / ((x1 * x2) * (x1 - x2));
+                 / ((x1 * x2) * (x1 - x2));
         }
         //
         //  Estimate the first derivative at 0.
@@ -883,7 +883,7 @@ void minny(int n, int jsearch, int nits, double& d2, double& x1, double& f1,
     if (small < fabs(x2 * (x2 - x1)))
     {
         d2 = (x2 * (f1 - f0) - x1 * (fm - f0))
-            / ((x1 * x2) * (x1 - x2));
+             / ((x1 * x2) * (x1 - x2));
     }
     else
     {
@@ -919,101 +919,101 @@ void minny(int n, int jsearch, int nits, double& d2, double& x1, double& f1,
 //****************************************************************************80
 
 double praxis(double t0, double h0, int n, int prin, double x[], const vector<Point2d>& dst_pts, Params& p,
-    double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p))
+              double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p))
 
-    //****************************************************************************80
-    //
-    //  Purpose:
-    //
-    //    PRAXIS seeks an N-dimensional minimizer X of a scalar function F(X).
-    //
-    //  Discussion:
-    //
-    //    PRAXIS returns the minimum of the function F(X,N) of N variables
-    //    using the principal axis method.  The gradient of the function is
-    //    not required.
-    //
-    //    The approximating quadratic form is
-    //
-    //      Q(x") = F(x,n) + (1/2) * (x"-x)" * A * (x"-x)
-    //
-    //    where X is the best estimate of the minimum and 
-    //
-    //      A = inverse(V") * D * inverse(V)
-    //
-    //    V(*,*) is the matrix of search directions; 
-    //    D(*) is the array of second differences.  
-    //
-    //    If F(X) has continuous second derivatives near X0, then A will tend 
-    //    to the hessian of F at X0 as X approaches X0.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    04 August 2016
-    //
-    //  Author:
-    //
-    //    Original FORTRAN77 version by Richard Brent.
-    //    C++ version by John Burkardt.
-    //
-    //  Reference:
-    //
-    //    Richard Brent,
-    //    Algorithms for Minimization with Derivatives,
-    //    Prentice Hall, 1973,
-    //    Reprinted by Dover, 2002.
-    //
-    //  Parameters:
-    //
-    //    Input, double T0, is a tolerance.  PRAXIS attempts to return 
-    //    praxis = f(x) such that if X0 is the true local minimum near X, then
-    //    norm ( x - x0 ) < T0 + sqrt ( EPSILON ( X ) ) * norm ( X ),
-    //    where EPSILON ( X ) is the machine precision for X.
-    //
-    //    Input, double H0, is the maximum step size.  H0 should be 
-    //    set to about the maximum distance from the initial guess to the minimum.
-    //    If H0 is set too large or too small, the initial rate of
-    //    convergence may be slow.
-    //
-    //    Input, int N, the number of variables.
-    //
-    //    Input, int PRIN, controls printing intermediate results.
-    //    0, nothing is printed.
-    //    1, F is printed after every n+1 or n+2 linear minimizations.  
-    //       final X is printed, but intermediate X is printed only 
-    //       if N is at most 4.
-    //    2, the scale factors and the principal values of the approximating 
-    //       quadratic form are also printed.
-    //    3, X is also printed after every few linear minimizations.
-    //    4, the principal vectors of the approximating quadratic form are 
-    //       also printed.
-    //
-    //    Input/output, double X[N], is an array containing on entry a
-    //    guess of the point of minimum, on return the estimated point of minimum.
-    //
-    //    Input, double F ( double X[], int N ), is the name of the function to be
-    //    minimized.
-    //
-    //    Output, double PRAXIS, the function value at the minimizer.
-    //
-    //  Local parameters:
-    //
-    //    Local, double DMIN, an estimate for the smallest eigenvalue.
-    //
-    //    Local, double FX, the value of F(X,N).
-    //
-    //    Local, bool ILLC, is TRUE if the system is ill-conditioned.
-    //
-    //    Local, double LDT, the length of the step.
-    //
-    //    Local, int NF, the number of function evaluations.
-    //
-    //    Local, int NL, the number of linear searches.
-    //
+//****************************************************************************80
+//
+//  Purpose:
+//
+//    PRAXIS seeks an N-dimensional minimizer X of a scalar function F(X).
+//
+//  Discussion:
+//
+//    PRAXIS returns the minimum of the function F(X,N) of N variables
+//    using the principal axis method.  The gradient of the function is
+//    not required.
+//
+//    The approximating quadratic form is
+//
+//      Q(x") = F(x,n) + (1/2) * (x"-x)" * A * (x"-x)
+//
+//    where X is the best estimate of the minimum and
+//
+//      A = inverse(V") * D * inverse(V)
+//
+//    V(*,*) is the matrix of search directions;
+//    D(*) is the array of second differences.
+//
+//    If F(X) has continuous second derivatives near X0, then A will tend
+//    to the hessian of F at X0 as X approaches X0.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    04 August 2016
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Richard Brent.
+//    C++ version by John Burkardt.
+//
+//  Reference:
+//
+//    Richard Brent,
+//    Algorithms for Minimization with Derivatives,
+//    Prentice Hall, 1973,
+//    Reprinted by Dover, 2002.
+//
+//  Parameters:
+//
+//    Input, double T0, is a tolerance.  PRAXIS attempts to return
+//    praxis = f(x) such that if X0 is the true local minimum near X, then
+//    norm ( x - x0 ) < T0 + sqrt ( EPSILON ( X ) ) * norm ( X ),
+//    where EPSILON ( X ) is the machine precision for X.
+//
+//    Input, double H0, is the maximum step size.  H0 should be
+//    set to about the maximum distance from the initial guess to the minimum.
+//    If H0 is set too large or too small, the initial rate of
+//    convergence may be slow.
+//
+//    Input, int N, the number of variables.
+//
+//    Input, int PRIN, controls printing intermediate results.
+//    0, nothing is printed.
+//    1, F is printed after every n+1 or n+2 linear minimizations.
+//       final X is printed, but intermediate X is printed only
+//       if N is at most 4.
+//    2, the scale factors and the principal values of the approximating
+//       quadratic form are also printed.
+//    3, X is also printed after every few linear minimizations.
+//    4, the principal vectors of the approximating quadratic form are
+//       also printed.
+//
+//    Input/output, double X[N], is an array containing on entry a
+//    guess of the point of minimum, on return the estimated point of minimum.
+//
+//    Input, double F ( double X[], int N ), is the name of the function to be
+//    minimized.
+//
+//    Output, double PRAXIS, the function value at the minimizer.
+//
+//  Local parameters:
+//
+//    Local, double DMIN, an estimate for the smallest eigenvalue.
+//
+//    Local, double FX, the value of F(X,N).
+//
+//    Local, bool ILLC, is TRUE if the system is ill-conditioned.
+//
+//    Local, double LDT, the length of the step.
+//
+//    Local, int NF, the number of function evaluations.
+//
+//    Local, int NL, the number of linear searches.
+//
 {
     double* d;
     double d2;
@@ -1170,7 +1170,7 @@ double praxis(double t0, double h0, int n, int prin, double x[], const vector<Po
         fk = false;
 
         minny(n, jsearch, nits, d2, s, value, fk, f, x, dst_pts, p, t,
-            h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
+              h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
 
         d[0] = d2;
 
@@ -1241,7 +1241,7 @@ double praxis(double t0, double h0, int n, int prin, double x[], const vector<Po
                     fk = false;
 
                     minny(n, jsearch, nits, d2, s, value, fk, f, x, dst_pts, p, t,
-                        h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
+                          h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
 
                     d[k2 - 1] = d2;
 
@@ -1293,7 +1293,7 @@ double praxis(double t0, double h0, int n, int prin, double x[], const vector<Po
                 fk = false;
 
                 minny(n, jsearch, nits, d2, s, value, fk, f, x, dst_pts, p, t,
-                    h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
+                      h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
 
                 d[k2 - 1] = d2;
             }
@@ -1343,7 +1343,7 @@ double praxis(double t0, double h0, int n, int prin, double x[], const vector<Po
                 fk = true;
 
                 minny(n, jsearch, nits, d2, lds, value, fk, f, x, dst_pts, p, t,
-                    h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
+                      h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
 
                 d[k - 1] = d2;
 
@@ -1402,7 +1402,7 @@ double praxis(double t0, double h0, int n, int prin, double x[], const vector<Po
         //  Try quadratic extrapolation in case we are in a curved valley.
         //
         quad(n, f, x, dst_pts, p, t, h, v, q0, q1, nl, nf, dmin, ldt, fx, qf1,
-            qa, qb, qc, qd0, qd1);
+             qa, qb, qc, qd0, qd1);
 
         for (j = 0; j < n; j++)
         {
@@ -1611,13 +1611,13 @@ void print2(int n, double x[], int prin, double fx, int nf, int nl)
 //
 //    Input, int PRIN, the user-specifed print level.
 //    0, nothing is printed.
-//    1, F is printed after every n+1 or n+2 linear minimizations.  
-//       final X is printed, but intermediate X is printed only 
+//    1, F is printed after every n+1 or n+2 linear minimizations.
+//       final X is printed, but intermediate X is printed only
 //       if N is at most 4.
-//    2, the scale factors and the principal values of the approximating 
+//    2, the scale factors and the principal values of the approximating
 //       quadratic form are also printed.
 //    3, X is also printed after every few linear minimizations.
-//    4, the principal vectors of the approximating quadratic form are 
+//    4, the principal vectors of the approximating quadratic form are
 //       also printed.
 //
 //    Input, double FX, the smallest value of F(X) found so far.
@@ -1642,71 +1642,71 @@ void print2(int n, double x[], int prin, double fx, int nf, int nl)
 //****************************************************************************80
 
 void quad(int n, double f(double x[], int n, const vector<Point2d>& dst_pts, Params& p),
-    double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
-    double v[], double q0[], double q1[], int& nl, int& nf, double dmin, double ldt, double& fx,
-    double& qf1, double& qa, double& qb, double& qc, double& qd0, double& qd1)
+          double x[], const vector<Point2d>& dst_pts, Params& p, double t, double h,
+          double v[], double q0[], double q1[], int& nl, int& nf, double dmin, double ldt, double& fx,
+          double& qf1, double& qa, double& qb, double& qc, double& qd0, double& qd1)
 
-    //****************************************************************************80
-    //
-    //  Purpose:
-    //
-    //    QUAD seeks to minimize the scalar function F along a particular curve.
-    //
-    //  Discussion:
-    //
-    //    The minimizer to be sought is required to lie on a curve defined
-    //    by Q0, Q1 and X.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    04 August 2016
-    //
-    //  Author:
-    //
-    //    Original FORTRAN77 version by Richard Brent.
-    //    C++ version by John Burkardt.
-    //
-    //  Reference:
-    //
-    //    Richard Brent,
-    //    Algorithms for Minimization with Derivatives,
-    //    Prentice Hall, 1973,
-    //    Reprinted by Dover, 2002.
-    //
-    //  Parameters:
-    //
-    //    Input, int N, the number of variables.
-    //
-    //    Input, double F ( double X[], int N ), the name of the function to 
-    //    be minimized.
-    //
-    //    Input/output, double X[N], ?
-    //
-    //    Input, double T, ?
-    //
-    //    Input, double H, ?
-    //
-    //    Input, double V[N,N], the matrix of search directions.
-    //
-    //    Input/output, double Q0[N], Q1[N], two auxiliary points used to define
-    //    a curve through X.
-    //
-    //    Input/output, int &NL, the number of linear searches.
-    //
-    //    Input/output, int &NF, the number of function evaluations.
-    //
-    //    Input, double DMIN, an estimate for the smallest eigenvalue.
-    //
-    //    Input, double LDT, the length of the step.
-    //
-    //    Input/output, double &FX, the value of F(X,N).
-    //
-    //    Input/output, double &QF1, &QA, &QB, &QC, &QD0, &QD1 ?
-    //
+//****************************************************************************80
+//
+//  Purpose:
+//
+//    QUAD seeks to minimize the scalar function F along a particular curve.
+//
+//  Discussion:
+//
+//    The minimizer to be sought is required to lie on a curve defined
+//    by Q0, Q1 and X.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    04 August 2016
+//
+//  Author:
+//
+//    Original FORTRAN77 version by Richard Brent.
+//    C++ version by John Burkardt.
+//
+//  Reference:
+//
+//    Richard Brent,
+//    Algorithms for Minimization with Derivatives,
+//    Prentice Hall, 1973,
+//    Reprinted by Dover, 2002.
+//
+//  Parameters:
+//
+//    Input, int N, the number of variables.
+//
+//    Input, double F ( double X[], int N ), the name of the function to
+//    be minimized.
+//
+//    Input/output, double X[N], ?
+//
+//    Input, double T, ?
+//
+//    Input, double H, ?
+//
+//    Input, double V[N,N], the matrix of search directions.
+//
+//    Input/output, double Q0[N], Q1[N], two auxiliary points used to define
+//    a curve through X.
+//
+//    Input/output, int &NL, the number of linear searches.
+//
+//    Input/output, int &NF, the number of function evaluations.
+//
+//    Input, double DMIN, an estimate for the smallest eigenvalue.
+//
+//    Input, double LDT, the length of the step.
+//
+//    Input/output, double &FX, the value of F(X,N).
+//
+//    Input/output, double &QF1, &QA, &QB, &QC, &QD0, &QD1 ?
+//
 {
     bool fk;
     int i;
@@ -1753,7 +1753,7 @@ void quad(int n, double f(double x[], int n, const vector<Point2d>& dst_pts, Par
         fk = true;
 
         minny(n, jsearch, nits, s, l, value, fk, f, x, dst_pts, p, t,
-            h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
+              h, v, q0, q1, nl, nf, dmin, ldt, fx, qa, qb, qc, qd0, qd1);
 
         qa = l * (l - qd1) / (qd0 + qd1) / qd0;
         qb = -(l + qd0) * (l - qd1) / qd1 / qd0;
@@ -1988,7 +1988,7 @@ double r8_uniform_01(int& seed)
 //
 //  Licensing:
 //
-//    This code is distributed under the GNU LGPL license. 
+//    This code is distributed under the GNU LGPL license.
 //
 //  Modified:
 //
@@ -2032,7 +2032,7 @@ double r8_uniform_01(int& seed)
 //    Input/output, int &SEED, the "seed" value.  Normally, this
 //    value should not be 0.  On output, SEED has been updated.
 //
-//    Output, double R8_UNIFORM_01, a new pseudorandom variate, 
+//    Output, double R8_UNIFORM_01, a new pseudorandom variate,
 //    strictly between 0 and 1.
 //
 {
@@ -2107,46 +2107,46 @@ void r8mat_print(int m, int n, double a[], string title)
 //****************************************************************************80
 
 void r8mat_print_some(int m, int n, double a[], int ilo, int jlo, int ihi,
-    int jhi, string title)
+                      int jhi, string title)
 
-    //****************************************************************************80
-    //
-    //  Purpose:
-    //
-    //    R8MAT_PRINT_SOME prints some of an R8MAT.
-    //
-    //  Discussion:
-    //
-    //    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
-    //    in column-major order.
-    //
-    //  Licensing:
-    //
-    //    This code is distributed under the GNU LGPL license.
-    //
-    //  Modified:
-    //
-    //    26 June 2013
-    //
-    //  Author:
-    //
-    //    John Burkardt
-    //
-    //  Parameters:
-    //
-    //    Input, int M, the number of rows of the matrix.
-    //    M must be positive.
-    //
-    //    Input, int N, the number of columns of the matrix.
-    //    N must be positive.
-    //
-    //    Input, double A[M*N], the matrix.
-    //
-    //    Input, int ILO, JLO, IHI, JHI, designate the first row and
-    //    column, and the last row and column to be printed.
-    //
-    //    Input, string TITLE, a title.
-    //
+//****************************************************************************80
+//
+//  Purpose:
+//
+//    R8MAT_PRINT_SOME prints some of an R8MAT.
+//
+//  Discussion:
+//
+//    An R8MAT is a doubly dimensioned array of R8 values, stored as a vector
+//    in column-major order.
+//
+//  Licensing:
+//
+//    This code is distributed under the GNU LGPL license.
+//
+//  Modified:
+//
+//    26 June 2013
+//
+//  Author:
+//
+//    John Burkardt
+//
+//  Parameters:
+//
+//    Input, int M, the number of rows of the matrix.
+//    M must be positive.
+//
+//    Input, int N, the number of columns of the matrix.
+//    N must be positive.
+//
+//    Input, double A[M*N], the matrix.
+//
+//    Input, int ILO, JLO, IHI, JHI, designate the first row and
+//    column, and the last row and column to be printed.
+//
+//    Input, string TITLE, a title.
+//
 {
 # define INCX 5
 
@@ -2517,7 +2517,7 @@ void r8vec_print(int n, double a[], string title)
     for (i = 0; i < n; i++)
     {
         cout << "  " << setw(8) << i
-            << ": " << setw(14) << a[i] << "\n";
+             << ": " << setw(14) << a[i] << "\n";
     }
 
     return;
@@ -2563,10 +2563,10 @@ void svsort(int n, double d[], double v[])
 //
 //    Input, int N, the length of D, and the order of V.
 //
-//    Input/output, double D[N], the vector to be sorted.  
+//    Input/output, double D[N], the vector to be sorted.
 //    On output, the entries of D are in descending order.
 //
-//    Input/output, double V[N,N], an N by N array to be adjusted 
+//    Input/output, double V[N,N], an N by N array to be adjusted
 //    as D is sorted.  In particular, if the value that was in D(I) on input is
 //    moved to D(J) on output, then the input column V(*,I) is moved to
 //    the output column V(*,J).
