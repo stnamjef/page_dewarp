@@ -43,3 +43,7 @@ g++ -o page_dewarp main.cpp $(pkg-config --cflags --libs opencv4)
 ## 4. Examples
 
 - The original and dewarped images are in the test images folder.
+
+## 5. Ongoing list
+
+- Parallel processing
