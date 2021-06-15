@@ -38,7 +38,7 @@ g++ -o page_dewarp main.cpp -std=c++17 -pthread $(pkg-config --cflags --libs ope
 
 ```bash
 # container shell
-./page_dewarp -idir=./image
+./page_dewarp -idir=./test_images
 ```
 
 ## 4. Example
