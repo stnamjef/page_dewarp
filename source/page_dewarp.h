@@ -42,7 +42,8 @@ int TVEC_BEGIN = 3;
 int SLOPES_BEGIN = 6;
 int Y_BEGIN = 8;
 
-int DEBUG_LEVEL = 0;			// 0=none, 1=some, 2=lots, 3=all
+int THRES_FLG = 1;
+int DEBUG_LEVEL = 0;			// 0=none, 1=all
 
 Mat K = (cv::Mat_<double>(3, 3) << FOCAL_LENGTH, 0, 0,
 									0, FOCAL_LENGTH, 0,
@@ -66,7 +67,7 @@ void keypoints_from_samples(string name, const Mat& small, const Mat& pagemask, 
 void get_default_params(const vector<Point2d>& corners, vector<Point2d>& rough_dims, const vector<double>& y_coords,
 	const vector<vector<double>>& x_coords, Params& p);
 void stack_points(const vector<Point2d>& corners, const vector<vector<Point2d>>& span_pts, int npts, vector<Point2d>& dst_pts);
-void optimize_params(string name, const Mat& small, const vector<Point2d>& dst_pts, Params& p);
+void optimize_params(const Mat& small, const vector<Point2d>& dst_pts, Params& p);
 double objective(double* dta, int size, const vector<Point2d>& dst_pts, Params& p);
 void project_xy(const vector<double>& x, const vector<double>& y, double* params, vector<Point2d>& img_pts);
 void polyval(const vector<double>& coeffs, const vector<double>& values, vector<double>& results);
@@ -154,7 +155,7 @@ void get_contours(string name,
 
 		contours_out.push_back(ContourInfo(contour, rect, tight_mask));
 
-		if (DEBUG_LEVEL >= 2) {
+		if (DEBUG_LEVEL >= 1) {
 			visualize_contours(name, small, contours_out);
 		}
 	}
@@ -173,19 +174,19 @@ Mat get_mask(string name, const Mat& small, const Mat& pagemask, string masktype
 			ADAPTIVE_WINSZ,
 			25);
 
-		if (DEBUG_LEVEL >= 3) {
-			debug_show(name, 0.1, "threshholded", mask);
+		if (DEBUG_LEVEL >= 1) {
+			debug_show(name, 0.1, "thresholded", mask);
 		}
 
 		cv::dilate(mask, mask, box(9, 1));
 
-		if (DEBUG_LEVEL >= 3) {
+		if (DEBUG_LEVEL >= 1) {
 			debug_show(name, 0.2, "dilated", mask);
 		}
 
 		cv::erode(mask, mask, box(1, 3));
 
-		if (DEBUG_LEVEL >= 3) {
+		if (DEBUG_LEVEL >= 1) {
 			debug_show(name, 0.3, "eroded", mask);
 		}
 	}
@@ -196,19 +197,19 @@ Mat get_mask(string name, const Mat& small, const Mat& pagemask, string masktype
 			ADAPTIVE_WINSZ,
 			7);
 
-		if (DEBUG_LEVEL >= 3) {
-			debug_show(name, 0.4, "threshholded", mask);
+		if (DEBUG_LEVEL >= 1) {
+			debug_show(name, 0.4, "thresholded", mask);
 		}
 
 		cv::erode(mask, mask, box(1, 3), Point(-1, -1), 3);
 
-		if (DEBUG_LEVEL >= 3) {
+		if (DEBUG_LEVEL >= 1) {
 			debug_show(name, 0.5, "eroded", mask);
 		}
 
 		cv::dilate(mask, mask, box(8, 2));
 
-		if (DEBUG_LEVEL >= 3) {
+		if (DEBUG_LEVEL >= 1) {
 			debug_show(name, 0.6, "dilated", mask);
 		}
 	}
@@ -293,7 +294,7 @@ void assemble_span(string name,
 		}
 	}
 
-	if (DEBUG_LEVEL >= 2) {
+	if (DEBUG_LEVEL >= 1) {
 		visualize_spans(name, small, pagemask, spans);
 	}
 }
@@ -459,7 +460,7 @@ void keypoints_from_samples(string name,
 		x_coords.push_back(px_coords);
 	}
 
-	if (DEBUG_LEVEL >= 2) {
+	if (DEBUG_LEVEL >= 1) {
 		visualize_span_points(name, small, span_pts, corners);
 	}
 }
@@ -504,8 +505,7 @@ void stack_points(const vector<Point2d>& corners,
 	}
 }
 
-void optimize_params(string name,
-	const Mat& small,
+void optimize_params(const Mat& small,
 	const vector<Point2d>& dst_pts,
 	Params& p)
 {
@@ -515,7 +515,7 @@ void optimize_params(string name,
 	praxis(0.001, 0.001, p.size, 0, p.data, dst_pts, p, objective);
 	system_clock::time_point end = system_clock::now();
 	duration<double> sec = end - start;
-	cout << "optimization(params) took " << sec.count() << "sec." << endl;
+	// cout << "optimization(params) took " << sec.count() << "sec." << endl;
 }
 
 double objective(double* dta, int s, const vector<Point2d>& dst_pts, Params& p)
@@ -610,8 +610,8 @@ void get_page_dims(const vector<Point2d>& corners, Params& p, double* page_dims)
 	praxis(0.001, 0.001, 2, 0, page_dims, dst_br, p, objective2);
 	system_clock::time_point end = system_clock::now();
 	duration<double> sec = end - start;
-	cout << "optimization(dims) took " << sec.count() << "sec." << endl;
-	cout << "got page dims " << page_dims[0] << " x " << page_dims[1] << endl;
+	// cout << "optimization(dims) took " << sec.count() << "sec." << endl;
+	// cout << "got page dims " << page_dims[0] << " x " << page_dims[1] << endl;
 }
 
 double objective2(double* dims, int size, const vector<Point2d>& dst_br, Params& p)
@@ -625,13 +625,13 @@ double objective2(double* dims, int size, const vector<Point2d>& dst_br, Params&
 	return sum_squared_error(dst_br, proj_br);
 }
 
-void remap_image(string name, const Mat& img, const Mat& small, const double* page_dims, const Params& p)
+void remap_image(string out_path, const Mat& img, const Mat& small, const double* page_dims, const Params& p)
 {
 	double temp = 0.5 * page_dims[1] * OUTPUT_ZOOM * img.rows;
 	int height = round_nearest_multiple(temp, REMAP_DECIMATE);
 	int width = round_nearest_multiple(height * page_dims[0] / page_dims[1], REMAP_DECIMATE);
 
-	cout << " output will be " << width << " x " << height << endl;
+	// cout << " output will be " << width << " x " << height << endl;
 
 	int height_small = height / REMAP_DECIMATE;
 	int width_small = width / REMAP_DECIMATE;
@@ -669,7 +669,15 @@ void remap_image(string name, const Mat& img, const Mat& small, const double* pa
 	Mat thresh;
 	cv::adaptiveThreshold(remapped, thresh, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, ADAPTIVE_WINSZ, 25);
 
-	cv::imwrite(name + "_thresh.png", thresh);
+	if (THRES_FLG == 0)
+	{
+		cv::imwrite(out_path + "_remap.png", remapped);
+	}
+	else {
+		Mat thresh;
+		cv::adaptiveThreshold(img_gray, thresh, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, ADAPTIVE_WINSZ, 25);
+		cv::imwrite(out_path + "_thresh.png", thresh);
+	}
 }
 
 int round_nearest_multiple(double num, int factor)
