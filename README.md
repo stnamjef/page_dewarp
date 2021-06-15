@@ -43,7 +43,7 @@ g++ -o page_dewarp main.cpp -std=c++17 -pthread $(pkg-config --cflags --libs ope
 
 ## 4. Example
 
-![example](C:\Users\stnam\Desktop\source\page_dewarp_master\page_dewarp\example.png)
+![example](.\example.png)
 
 ## 5. Notice
 
