@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 	fs::directory_iterator iter(input_dir);
 	while (iter != fs::end(iter)) {
 		// get in_path & out_path
-		string image_name = (*iter).path().filename().string();
+		string image_name = (*iter).path().stem().string();
 		string in_path = (*iter).path().string();
 		string out_path = output_dir + "/" + image_name;
 		// start dewarping
