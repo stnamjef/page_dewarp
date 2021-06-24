@@ -657,23 +657,20 @@ void remap_image(string out_path, const Mat& img, const Mat& small, const double
 	cv::resize(img_x_coords, img_x_coords, Size(width, height), 0.0, 0.0, INTER_CUBIC);
 	cv::resize(img_y_coords, img_y_coords, Size(width, height), 0.0, 0.0, INTER_CUBIC);
 
-	Mat img_gray;
-	cv::cvtColor(img, img_gray, COLOR_RGB2GRAY);
-
 	img_x_coords.convertTo(img_x_coords, CV_32FC1);
 	img_y_coords.convertTo(img_y_coords, CV_32FC1);
 
 	Mat remapped;
-	cv::remap(img_gray, remapped, img_x_coords, img_y_coords, INTER_CUBIC, BORDER_REPLICATE);
-
-	Mat thresh;
-	cv::adaptiveThreshold(remapped, thresh, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, ADAPTIVE_WINSZ, 25);
+	cv::remap(img, remapped, img_x_coords, img_y_coords, INTER_CUBIC, BORDER_REPLICATE);
 
 	if (THRES_FLG == 0)
 	{
 		cv::imwrite(out_path + "_remap.png", remapped);
 	}
 	else {
+		Mat img_gray;
+		cv::cvtColor(remapped, img_gray, COLOR_RGB2GRAY);
+
 		Mat thresh;
 		cv::adaptiveThreshold(img_gray, thresh, 255, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, ADAPTIVE_WINSZ, 25);
 		cv::imwrite(out_path + "_thresh.png", thresh);
