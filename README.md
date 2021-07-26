@@ -1,6 +1,9 @@
 # Page dewarp
 - Faster version of [page_dewarp](https://github.com/mzucker/page_dewarp) in C++.
 - [A dockerized test environment](https://hub.docker.com/repository/docker/stnamjef/opencv-4.0.0) is available.
+- [Update: 2021-06-15]
+  - CLI options(contributed by [zvezdochiot](https://github.com/ImageProcessing-ElectronicPublications/pagedewarp)) added as in section 5.
+  - Supports parallel processing.
 
 ## 1. Requirements
 
@@ -45,10 +48,7 @@ g++ -o page_dewarp main.cpp -std=c++17 -pthread $(pkg-config --cflags --libs ope
 
 ![example](./example.png)
 
-## 5. Notice
-
-- Supports parallel processing.
-- CLI options(contributed by [zvezdochiot](https://github.com/ImageProcessing-ElectronicPublications/pagedewarp)) added as below.
+## 5. CLI options
 
 | Options |  dtype  | description                                                  |
 | :-----: | :-----: | ------------------------------------------------------------ |
