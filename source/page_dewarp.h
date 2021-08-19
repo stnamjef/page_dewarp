@@ -45,6 +45,8 @@ int Y_BEGIN = 8;
 int THRES_FLG = 1;
 int DEBUG_LEVEL = 0;			// 0=none, 1=all
 
+string IMG_TYPE = "text";
+
 Mat K = (cv::Mat_<double>(3, 3) << FOCAL_LENGTH, 0, 0,
 									0, FOCAL_LENGTH, 0,
 									0, 0, 1);
@@ -53,8 +55,8 @@ Mat K = (cv::Mat_<double>(3, 3) << FOCAL_LENGTH, 0, 0,
 
 void resize_to_screen(const Mat& src, Mat& resized, int maxw = 1280, int maxh = 700);
 void get_page_extents(const Mat& small, Mat& page, vector<Point>& outline);
-void get_contours(string name, const Mat& small, const Mat& pagemask, string masktype, vector<ContourInfo>& contours_out);
-Mat get_mask(string name, const Mat& small, const Mat& pagemask, string masktype);
+void get_contours(string name, const Mat& small, const Mat& pagemask, vector<ContourInfo>& contours_out);
+Mat get_mask(string name, const Mat& small, const Mat& pagemask);
 Mat box(int width, int height);
 Mat make_tight_mask(const vector<Point>& contour, int xmin, int ymin, int width, int height);
 void assemble_span(string name, const Mat& small, const Mat& pagemask, vector<ContourInfo>& cinfo_list, vector<vector<ContourInfo*>>& spans);
@@ -121,10 +123,9 @@ void get_page_extents(const Mat& small, Mat& page, vector<Point>& outline)
 void get_contours(string name,
 	const Mat& small,
 	const Mat& pagemask,
-	string masktype,
 	vector<ContourInfo>& contours_out)
 {
-	Mat mask = get_mask(name, small, pagemask, masktype);
+	Mat mask = get_mask(name, small, pagemask);
 
 	vector<vector<Point>> contours;
 	cv::findContours(mask, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
@@ -161,13 +162,13 @@ void get_contours(string name,
 	}
 }
 
-Mat get_mask(string name, const Mat& small, const Mat& pagemask, string masktype)
+Mat get_mask(string name, const Mat& small, const Mat& pagemask)
 {
 	Mat sgray;
 	cv::cvtColor(small, sgray, cv::COLOR_RGB2GRAY);
 
 	Mat mask;
-	if (masktype == "text") {
+	if (IMG_TYPE == "text") {
 		cv::adaptiveThreshold(sgray, mask, 255,
 			cv::ADAPTIVE_THRESH_MEAN_C,
 			cv::THRESH_BINARY_INV,
@@ -201,7 +202,7 @@ Mat get_mask(string name, const Mat& small, const Mat& pagemask, string masktype
 			debug_show(name, 0.4, "thresholded", mask);
 		}
 
-		cv::erode(mask, mask, box(1, 3), Point(-1, -1), 3);
+		cv::erode(mask, mask, box(3, 1), Point(-1, -1), 3);
 
 		if (DEBUG_LEVEL >= 1) {
 			debug_show(name, 0.5, "eroded", mask);
