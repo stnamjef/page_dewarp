@@ -68,14 +68,22 @@ void parse_arguments(int argc, char** argv, string& input_dir, string& output_di
 				it++;
                 output_dir = *it;
 			}
-			else if ((*it) == "nw") {
-				it++;
-				num_workers = std::stoi(*it);
-				if (num_workers < 1) {
-					cout << "--num_workers should be greater than 0" << endl;
-					exit(1);
-				}
-			}
+            else if ((*it) == "nw") {
+                it++;
+                num_workers = std::stoi(*it);
+                if (num_workers < 1) {
+                    cout << "-nw must be greater than 0." << endl;
+                    exit(1);
+                }
+            }
+            else if (*(it) == "it") {
+                it++;
+                IMG_TYPE = *it;
+                if (*it != "text" && *it != "table") {
+                    cout << "-it must be either 'text' or 'table'." << endl;
+                    exit(1);
+                }
+            }
             else if ((*it) == "mx"){
                 it++;
                 PAGE_MARGIN_X = std::stoi(*it);
@@ -178,6 +186,7 @@ void print_help()
     cout << "  -idir S   - input directory (default=NONE)" << endl;
     cout << "  -odir S   - output directory (default=./dewarped)" << endl;
     cout << "  -nw   N   - number of workers for parallel processing (default=1)" << endl;
+    cout << "  -it   S   - input image type (default=text)" << endl;
     cout << "  -mx   N   - margin X (default=" << PAGE_MARGIN_X << ")" << endl;
     cout << "  -my   N   - margin Y (default=" << PAGE_MARGIN_Y << ")" << endl;
     cout << "  -m    N   - margin X and Y" << endl;
@@ -227,6 +236,7 @@ void print_config(const string& input_dir, const string& output_dir, int num_wor
     cout << "  -INPUT_DIR          = " << input_dir << endl;
     cout << "  -OUTPUT_DIR         = " << output_dir << endl;
     cout << "  -NUM_WORKERS        = " << num_workers << endl;
+    cout << "  -IMG_TYPE           = " << IMG_TYPE << endl;
     cout << "  -PAGE_MARGIN_X      = " << PAGE_MARGIN_X << endl;
     cout << "  -PAGE_MARGIN_Y      = " << PAGE_MARGIN_Y << endl;
     cout << "  -OUTPUT_ZOOM        = " << OUTPUT_ZOOM << endl;
@@ -267,15 +277,15 @@ void dewarp_image(const string& img_name, const string& in_path, const string& o
 	get_page_extents(small, pagemask, page_outline);
 
 	vector<ContourInfo> cinfo_list;
-	get_contours(img_name, small, pagemask, "text", cinfo_list);
+	get_contours(img_name, small, pagemask, cinfo_list);
 
 	vector<vector<ContourInfo*>> spans;
 	assemble_span(img_name, small, pagemask, cinfo_list, spans);
 
-	/*if (spans.size() < 1) {
-		std::cout << "skipping " << name << " because only ";
+	if (spans.size() < 1) {
+		std::cout << "skipping " << img_name << " because only ";
 		std::cout << spans.size() << " spans" << endl;
-	}*/
+	}
 
 	vector<vector<Point2d>> span_points;
 	sample_spans(small.size(), spans, span_points);
