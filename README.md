@@ -55,6 +55,7 @@ g++ -o page_dewarp main.cpp -std=c++17 -pthread $(pkg-config --cflags --libs ope
 |  -idir  | string  | Input directory containing images to process (default=NONE). |
 |  -odir  | string  | Output directory where dewarped images should be saved (default=./dewarped). |
 |   -nw   | integer | The number of workers(threads) for parallel processing (default=1). It is not recommended to set this option greater than the number of CPU cores. |
+|   -it   | string  | Input image type(default=text). It must be either "text" or "table". |
 |   -mx   | integer | Reduced pixel to ignore near L/R edge of an image(default=50). |
 |   -my   | integer | Reduced pixel to ignore near T/B edge of an image(default=20). |
 |   -m    | integer | Reduced pixel to ignore near L/R/T/B edge of an image.       |
